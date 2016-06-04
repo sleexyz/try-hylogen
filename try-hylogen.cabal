@@ -1,0 +1,24 @@
+name:                try-hylogen
+version:             0.1.0.0
+synopsis:            try hylogen in your browser
+homepage:            hylogen.com
+license:             MIT
+license-file:        LICENSE
+author:              Sean Lee
+maintainer:          freshdried@gmail.com
+build-type:          Simple
+cabal-version:       >=1.10
+executable try-hylogen
+  main-is:             Main.hs
+  build-depends:       base >=4.8 && <4.9
+                     , aeson
+                     , servant-server
+                     , wai
+                     , warp
+                     , hint
+                     , transformers
+                     , hylogen >= 0.1.3.0
+  
+  hs-source-dirs:      src
+  default-language:    Haskell2010
+  
