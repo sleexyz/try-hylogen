@@ -1,7 +1,7 @@
 module App.Input where
 
 import Prelude
-import Pux.Html (Html, div, span, button, text)
+import Pux.Html (Html, h1, div, span, button, text)
 import Pux.Html.Events (onClick)
 import Pux
 
@@ -58,7 +58,8 @@ view :: State -> Html Action
 view state =
   div
     []
-    [ div [] [ text (state.input) ]
+    [ h1 [] [ text "hello!"]
+    , div [] [ text (state.input) ]
     -- , div [] [ text (showOutput state.output)]
-    -- , button [ onClick (RequestCode) ] [ text "Submit" ]
+    , button [ onClick (const $ RequestCode "poopy") ] [ text "Submit" ]
     ]
