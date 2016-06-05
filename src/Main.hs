@@ -1,6 +1,7 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 
 module Main where
@@ -9,12 +10,16 @@ import Servant
 import Data.Aeson
 import Network.Wai
 import Network.Wai.Handler.Warp
+import Network.Wai.Middleware.Cors
 import Data.Proxy
 
 import Control.Monad.IO.Class
 import Control.Concurrent
+-- import qualified Data.CaseInsensitive as CI
+
 
 import Compile
+import Data.Function
 
 type API = "compile" :>  ReqBody '[JSON] String :> Post '[JSON] Msg
 
@@ -28,7 +33,10 @@ server = compileHandle
     compileHandle = liftIO . compile
 
 app :: Application
-app = serve api server
+app = serve api server 
+    & cors (const $ Just policy)
+  where
+    policy = simpleCorsResourcePolicy {corsRequestHeaders = ["Content-Type"]}
 
 main :: IO ()
 main =  do

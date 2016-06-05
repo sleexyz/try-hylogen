@@ -5,3 +5,7 @@ body {
     letter-spacing: .2px;
     text-size-adjust: 100
 }
+.input {
+  width: 640px;
+  height: 480px;
+}

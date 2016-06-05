@@ -1,8 +1,9 @@
 module App.Input where
 
-import Prelude
-import Pux.Html (Html, h1, div, span, button, text)
-import Pux.Html.Events (onClick)
+import Prelude hiding (div)
+import Pux.Html hiding (bind)
+import Pux.Html.Events as E
+import Pux.Html.Attributes as A
 import Pux
 
 import Data.Argonaut
@@ -36,30 +37,38 @@ instance decodeJsonResponse :: DecodeJson Response where
         | tag == "Err"  -> return $ Err contents
         | otherwise     -> return $ Err "unexpected error"
 
-data Action = RequestCode String
+data Action = RequestCode
+            | UpdateCode String
             | ReceiveCode (Either String Response)
 
 init :: State
-init = {input: "hadfasfd", output : Code "hello"}
+init = {input: "let color = vec4 (1, 1, 1, 0)\nin toProgram color", output: Code "hello"}
 
 update :: Action -> State -> EffModel State Action (ajax :: AJAX)
-update (RequestCode str) s = { state: (s {input = str})
+update (UpdateCode str) state = noEffects $ state { input = str }
+update (RequestCode) state = { state: state
                              , effects: [ do
-                                             res <- attempt $ post "http://localhost:8080/compile" "hello"
+                                             res <- attempt $ post "http://localhost:8080/compile" (fromString state.input)
                                              let decode r = decodeJson r.response :: Either String Response
-                                             let todos = either (Left <<< show) decode res
-                                             return $ ReceiveCode (Left "hello")
+                                             let response = either (Left <<< show) decode res
+                                             return $ ReceiveCode response
                                         ]
                              }
 update (ReceiveCode (Left strerr)) state = noEffects $ state { output = Err strerr }
 update (ReceiveCode (Right err)) state = noEffects $ state { output = err }
+
+textboxOnChange e = UpdateCode e.currentTarget.value
+
+-- TODO: debounce
 
 view :: State -> Html Action
 view state =
   div
     []
     [ h1 [] [ text "hello!"]
-    , div [] [ text (state.input) ]
-    -- , div [] [ text (showOutput state.output)]
-    , button [ onClick (const $ RequestCode "poopy") ] [ text "Submit" ]
+    , textarea [ E.onChange textboxOnChange
+               , A.className "input"
+               ] [ text (state.input) ]
+    , div [] [button [ E.onClick (const RequestCode) ] [ text "Submit" ]]
+    , pre [] [ text (showOutput state.output)]
     ]
