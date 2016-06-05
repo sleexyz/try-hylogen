@@ -1,18 +1,17 @@
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Compile where
 
 import qualified Language.Haskell.Interpreter as I
 import Data.Aeson
 import Hylogen.WithHylide
+import GHC.Generics
 
 data Msg = Err String
          | Code String
-
-instance ToJSON Msg where
-  toJSON = \case
-    Err str -> object [ "error" .= str ]
-    Code str -> object [ "code" .= str ]
+         deriving (Show, Generic, ToJSON, FromJSON)
 
 interp :: String -> I.InterpreterT IO String
 interp str = do
@@ -21,7 +20,7 @@ interp str = do
   show <$> I.interpret str (I.as :: Program)
 
 
-say = I.liftIO . putStrLn
+-- say = I.liftIO . putStrLn
 
 compile :: String -> IO Msg
 compile str = I.runInterpreter (interp str) >>= return . \case
