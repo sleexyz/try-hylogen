@@ -41,20 +41,24 @@ data Action = Submit
 
 init :: State
 init = { input: Input.init
-       , output: Code "hello"
+       , output: Code "Type something!"
        , sent: false
        }
 
 
 onSubmit :: forall eff. State -> Aff (ajax :: AJAX | eff) Action
 onSubmit state = do
-  res <- attempt $ post "http://localhost:8080/compile" (fromString state.input.source)
+  res <- attempt $ post "http://localhost:8080/compile" (fromString state.input.localSource)
   let decode r = decodeJson r.response :: Either String Response
   let response = either (Left <<< show) decode res
   return $ Receive response
 
 update :: Action -> State -> EffModel State Action (ajax :: AJAX)
-update (InputAction action) state = noEffects $ state {input= Input.update action state.input}
+update (InputAction action) state = { state: state {input=foo.state}
+                                    , effects: foo.effects
+                                    }
+  where
+    foo = Input.update action state.input
 update (Submit) state = { state: state , effects: [onSubmit state]}
 update (Receive (Left strerr)) state = noEffects $ state { output = Err strerr }
 update (Receive (Right err)) state = noEffects $ state { output = err }

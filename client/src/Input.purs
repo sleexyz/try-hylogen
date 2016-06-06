@@ -12,20 +12,23 @@ import Network.HTTP.Affjax (AJAX, post)
 import Control.Monad.Aff (Aff, attempt)
 
 
-type State = {source :: String}
+type State = { localSource :: String}
 
 init :: State
-init = { source: "let color = vec4 (1, 1,1, 1)\nin toProgram color" }
+init = { localSource: "let color = vec4 (1, 1, 1, 1)\nin toProgram color" }
 
 
 data Action = UpdateSource String
+            -- | SendSource String
 
-update :: Action -> State -> State
-update (UpdateSource str) state = state {source=str}
--- Now how do we extend the effects?
+-- update :: forall eff. Action -> State -> EffModel State Action eff
+update (UpdateSource str) state = noEffects $ state {localSource=str}
+-- update (UpdateSource str) state = { state: state {lastSent=100}
+--                                   , effects:  [later' $ return $ SendSource (state.localSource)]
+--                                   }
 
 
 view :: State -> Html Action
 view state = textarea [ E.onChange (\e -> UpdateSource e.currentTarget.value)
                       , A.className "input"
-                      ] [ text (state.source) ]
+                      ] [ text (state.localSource) ]
