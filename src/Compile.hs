@@ -15,7 +15,7 @@ data Msg = Err String
 
 interp :: String -> I.InterpreterT IO String
 interp str = do
-  I.set [ I.languageExtensions I.:= [I.DataKinds, I.GADTs]]
+  I.set [ I.languageExtensions I.:= [I.DataKinds, I.GADTs, I.ScopedTypeVariables]]
   I.setImports ["Prelude", "Hylogen.WithHylide", "Hylogen.Expr", "Hylogen.Program"]
   show <$> I.interpret str (I.as :: Program)
 

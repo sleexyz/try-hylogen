@@ -3,9 +3,17 @@ body {
     text-rendering: optimizeLegibility;
     font-size: 14px;
     letter-spacing: .2px;
-    text-size-adjust: 100
+    text-size-adjust: 100;
 }
 .input {
-  width: 640px;
-  height: 480px;
+    flex : 1 0 auto;
+    min-width: 320px;
+    height: 75vh;
+}
+.content {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: true;
+    height: 100%;
+    font-size: 13.33333px;
 }
