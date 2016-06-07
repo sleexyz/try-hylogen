@@ -11,12 +11,16 @@ import Data.Either (Either (Right, Left), either)
 import Network.HTTP.Affjax (AJAX, post)
 import Control.Monad.Aff (Aff, attempt)
 
-import App.Input as Input
-
-type State = { input :: Input.State
+type State = { input :: String
              , output :: Response
              , sent :: Boolean
              }
+
+init :: State
+init = { input: "let color = vec4 (1, 1, 1, 1)\nin toProgram color"
+       , output: Code "Type something!"
+       , sent: false
+       }
 
 data Response = Err String
               | Code String
@@ -35,30 +39,29 @@ instance decodeJsonResponse :: DecodeJson Response where
         | tag == "Err"  -> return $ Err contents
         | otherwise     -> return $ Err "unexpected error"
 
+
+data Maybe a = Some a
+             | None
+
+
+data List a = Nil
+            | Cons a (List a)
+
 data Action = Submit
-            | InputAction Input.Action
+            | UpdateSource String
             | Receive (Either String Response)
 
-init :: State
-init = { input: Input.init
-       , output: Code "Type something!"
-       , sent: false
-       }
 
 
 onSubmit :: forall eff. State -> Aff (ajax :: AJAX | eff) Action
 onSubmit state = do
-  res <- attempt $ post "http://localhost:8080/compile" (fromString state.input.localSource)
+  res <- attempt $ post "http://localhost:8080/compile" (fromString state.input)
   let decode r = decodeJson r.response :: Either String Response
   let response = either (Left <<< show) decode res
   return $ Receive response
 
 update :: Action -> State -> EffModel State Action (ajax :: AJAX)
-update (InputAction action) state = { state: state {input=foo.state}
-                                    , effects: foo.effects
-                                    }
-  where
-    foo = Input.update action state.input
+update (UpdateSource str) state = noEffects $ state {input=str}
 update (Submit) state = { state: state , effects: [onSubmit state]}
 update (Receive (Left strerr)) state = noEffects $ state { output = Err strerr }
 update (Receive (Right err)) state = noEffects $ state { output = err }
@@ -73,7 +76,9 @@ view state =
       [A.className "content"]
       [ div
         []
-        [ InputAction <$> Input.view state.input
+        [ textarea [ E.onChange (\e -> UpdateSource e.currentTarget.value)
+                   , A.className "input"
+                   ] [ text (state.input) ]
         , div [] [button [ E.onClick (const Submit) ] [ text "Submit" ]]
         ]
       , pre [] [ text (showOutput state.output)]
