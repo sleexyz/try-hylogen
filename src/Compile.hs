@@ -17,13 +17,15 @@ interp :: String -> I.InterpreterT IO String
 interp str = do
   I.set [ I.languageExtensions I.:= [I.DataKinds, I.GADTs, I.ScopedTypeVariables]]
   I.setImports ["Prelude", "Hylogen.WithHylide", "Hylogen.Expr", "Hylogen.Program"]
-  show <$> I.interpret str (I.as :: Program)
+  show <$> I.interpret str' (I.as :: Program)
+    where
+      str' = "let\n" ++ str ++ "\nin output"
 
 
 -- say = I.liftIO . putStrLn
 
 compile :: String -> IO Msg
-compile str = I.runInterpreter (interp str) >>= return . \case
+compile str = (flip fmap) (I.runInterpreter (interp str)) $ \case
   Left err -> case err of
     I.UnknownError str -> Err str
     I.WontCompile errors -> Err . mconcat $ I.errMsg <$> errors

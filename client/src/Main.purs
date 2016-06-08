@@ -22,7 +22,7 @@ config state = return  { initialState: state
 main :: State -> Eff (CoreEffects AppEffects) (App State Action)
 main state = do
   app <- Pux.start =<< config state
-  renderToDOM "#app" app.html
+  renderToDOM "#app" app.html :: _
   return app
 
 -- debug :: State -> Eff (CoreEffects AppEffects) (App State (Pux.Devtool.Action Action))

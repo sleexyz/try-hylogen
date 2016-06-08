@@ -10,6 +10,7 @@ build-type:          Simple
 cabal-version:       >=1.10
 executable try-hylogen
   main-is:             Main.hs
+  ghc-options:         -O2 -threaded
   build-depends:       base >=4.8 && <4.9
                      , aeson
                      , servant-server

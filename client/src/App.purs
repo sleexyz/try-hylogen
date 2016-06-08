@@ -2,25 +2,21 @@ module App.App where
 
 import Prelude hiding (div)
 import Pux.Html hiding (bind)
-import Pux.Html.Events as E
-import Pux.Html.Attributes as A
+import Pux.Html.Events as H
+import Pux.Html.Attributes as H
 import Pux
 
 import Data.Argonaut
 import Data.Either (Either (Right, Left), either)
 import Network.HTTP.Affjax (AJAX, post)
-import Control.Monad.Aff (Aff, attempt)
+import Control.Monad.Aff (Aff, attempt, later, later')
 
-type State = { input :: String
-             , output :: Response
-             , sent :: Boolean
-             }
+import Data.Time as D
+import Data.Date as D
+import Data.Int hiding (fromString)
 
-init :: State
-init = { input: "let color = vec4 (1, 1, 1, 1)\nin toProgram color"
-       , output: Code "Type something!"
-       , sent: false
-       }
+
+
 
 data Response = Err String
               | Code String
@@ -40,12 +36,19 @@ instance decodeJsonResponse :: DecodeJson Response where
         | otherwise     -> return $ Err "unexpected error"
 
 
-data Maybe a = Some a
-             | None
 
+type State = { input :: String
+             , output :: Response
+             , counter :: Int
+             }
 
-data List a = Nil
-            | Cons a (List a)
+init :: State
+init = { input: ts
+       , output: Code "Type something!"
+       , counter: 0
+       }
+  where
+    ts = "color = vec4 (1, 1, 1, 1)\n\noutput = toProgram color"
 
 data Action = Submit
             | UpdateSource String
@@ -53,33 +56,35 @@ data Action = Submit
 
 
 
-onSubmit :: forall eff. State -> Aff (ajax :: AJAX | eff) Action
-onSubmit state = do
-  res <- attempt $ post "http://localhost:8080/compile" (fromString state.input)
-  let decode r = decodeJson r.response :: Either String Response
-  let response = either (Left <<< show) decode res
-  return $ Receive response
 
 update :: Action -> State -> EffModel State Action (ajax :: AJAX)
-update (UpdateSource str) state = noEffects $ state {input=str}
-update (Submit) state = { state: state , effects: [onSubmit state]}
-update (Receive (Left strerr)) state = noEffects $ state { output = Err strerr }
-update (Receive (Right err)) state = noEffects $ state { output = err }
+update (UpdateSource str) state    = { state: state {input=str} , effects: []}
+update (Submit) state              = {state: state, effects: [onSubmit state]}
+  where
+    onSubmit :: forall eff. State -> Aff (ajax :: AJAX | eff) Action
+    onSubmit state = do
+      res <- attempt $ post "http://localhost:8080/compile" (fromString state.input)
+      let decode r = decodeJson r.response :: Either String Response
+      let response = either (Left <<< show) decode res
+      return $ Receive response
+update (Receive (Left err)) state  = noEffects $ state { output = Err err}
+update (Receive (Right str)) state = noEffects $ state { output = str }
+
 
 -- TODO: debounce
 view :: State -> Html Action
 view state =
   div
-    [A.className "app"]
+    [H.className "app"]
     [ h1 [] [ text "Try Hylogen"]
     , div
-      [A.className "content"]
+      [H.className "content"]
       [ div
         []
-        [ textarea [ E.onChange (\e -> UpdateSource e.currentTarget.value)
-                   , A.className "input"
+        [ textarea [ H.onChange (\e -> UpdateSource e.currentTarget.value)
+                   , H.className "input"
                    ] [ text (state.input) ]
-        , div [] [button [ E.onClick (const Submit) ] [ text "Submit" ]]
+        , div [] [button [ H.onClick (const Submit) ] [ text "Submit" ]]
         ]
       , pre [] [ text (showOutput state.output)]
       ]

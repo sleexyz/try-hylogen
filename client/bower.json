@@ -12,6 +12,7 @@
     "purescript-pux-devtool": "^2.0.0",
     "purescript-argonaut": "^0.12.0",
     "purescript-generics": "^0.7.2",
-    "purescript-affjax": "^0.13.2"
+    "purescript-affjax": "^0.13.2",
+    "purescript-datetime": "^0.9.2"
   }
 }
