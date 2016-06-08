@@ -5,15 +5,20 @@ body {
     letter-spacing: .2px;
     text-size-adjust: 100;
 }
-.input {
-    flex : 1 0 auto;
-    min-width: 400px;
-    height: 75vh;
-}
+
 .content {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     flex-wrap: true;
     height: 100%;
     font-size: 13.33333px;
+}
+.source {
+    flex : 1 0 auto;
+    min-width: 320px;
+    min-height: 50vh;
+}
+.glsl {
+    flex: 1 0 auto;
+    min-height: 30vh;
 }

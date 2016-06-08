@@ -36,39 +36,67 @@ instance decodeJsonResponse :: DecodeJson Response where
         | otherwise     -> return $ Err "unexpected error"
 
 
-
-type State = { input :: String
+type State = { source :: String
              , output :: Response
              , counter :: Int
              }
 
 init :: State
-init = { input: ts
-       , output: Code "Type something!"
+init = { source: """output :: Program
+output = toProgram color
+
+color :: Vec4
+color = vec4 (1, 1, 1, 1)
+"""
+       , output: Code """void main() {
+    vec4 _1 = vec4(1.0, 1.0, 1.0, 1.0);
+
+    gl_FragColor = _1;
+}
+"""
        , counter: 0
        }
-  where
-    ts = "color = vec4 (1, 1, 1, 1)\n\noutput = toProgram color"
 
-data Action = Submit
+
+data Action = ActuallySubmit
             | UpdateSource String
+            | TrySubmit Int
+            | Nop
             | Receive (Either String Response)
 
 
 
 
 update :: Action -> State -> EffModel State Action (ajax :: AJAX)
-update (UpdateSource str) state    = { state: state {input=str} , effects: []}
-update (Submit) state              = {state: state, effects: [onSubmit state]}
+update (UpdateSource str) state
+  = { state: state {source=str, counter=newCounter}
+    , effects: [later' 1000 <<< return $ TrySubmit newCounter]
+    }
   where
-    onSubmit :: forall eff. State -> Aff (ajax :: AJAX | eff) Action
-    onSubmit state = do
-      res <- attempt $ post "http://localhost:8080/compile" (fromString state.input)
-      let decode r = decodeJson r.response :: Either String Response
-      let response = either (Left <<< show) decode res
-      return $ Receive response
-update (Receive (Left err)) state  = noEffects $ state { output = Err err}
-update (Receive (Right str)) state = noEffects $ state { output = str }
+    newCounter = state.counter + 1
+
+update (TrySubmit counter) state =
+  { state: state
+  , effects: [ return $ if counter == state.counter
+                        then ActuallySubmit
+                        else Nop
+             ]
+  }
+
+update (ActuallySubmit) state =
+  { state: state
+  , effects: [ do
+                  res <- attempt $ post "http://localhost:8080/compile" (fromString state.source)
+                  let decode r = decodeJson r.response :: Either String Response
+                  let response = either (Left <<< show) decode res
+                  return $ Receive response
+             ]
+  }
+update (Receive (Left err)) state
+  = noEffects $ state { output = Err err}
+update (Receive (Right str)) state
+  = noEffects $ state { output = str }
+update Nop state = noEffects state
 
 
 -- TODO: debounce
@@ -79,13 +107,9 @@ view state =
     [ h1 [] [ text "Try Hylogen"]
     , div
       [H.className "content"]
-      [ div
-        []
-        [ textarea [ H.onChange (\e -> UpdateSource e.currentTarget.value)
-                   , H.className "input"
-                   ] [ text (state.input) ]
-        , div [] [button [ H.onClick (const Submit) ] [ text "Submit" ]]
-        ]
-      , pre [] [ text (showOutput state.output)]
+      [ textarea [ H.onChange (\e -> UpdateSource e.currentTarget.value)
+                 , H.className "source"
+                 ] [ text (state.source) ]
+      , pre [H.className "glsl"] [ text (showOutput state.output)]
       ]
     ]
