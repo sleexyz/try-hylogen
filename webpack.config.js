@@ -26,7 +26,10 @@ var config = {
         query: {
           psc: 'psa',
           pscIde: true,
-          pscArgs: "--source-maps --censor-lib --censor-codes=ImplicitImport"
+          pscArgs:  {
+            censorWarnings: true,
+            sourceMaps: true
+          }
         }
       }
     ],
