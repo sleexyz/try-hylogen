@@ -1,0 +1,10 @@
+{
+  "name": "try-hylogen",
+  "main": "support/index.js",
+  "dependencies": {
+    "purescript-pux": "^5.0.1",
+    "purescript-pux-devtool": "^3.0.0",
+    "purescript-argonaut": "^1.0.0",
+    "purescript-affjax": "^2.0.1"
+  }
+}
