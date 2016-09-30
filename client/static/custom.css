@@ -1,0 +1,27 @@
+.hflex {
+    display: flex;
+    flex-direction: row;
+}
+.content {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: true;
+    height: 100%;
+    font-size: 13.33333px;
+}
+
+.program{
+    width: 50vw;
+    height: 50vw;
+}
+.source {
+    flex : 1 0 auto;
+    min-height: 50vh;
+    width: 50vw;
+}
+.glsl {
+    flex: 0 0 auto;
+    min-height: 30vh;
+    overflow-x: auto;
+    width: 50vw;
+}

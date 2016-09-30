@@ -8,11 +8,9 @@
   "main": "support/index.js",
   "license": "BSD3",
   "dependencies": {
-    "purescript-pux": "^4.0.0",
-    "purescript-pux-devtool": "^2.0.0",
-    "purescript-argonaut": "^0.12.0",
-    "purescript-generics": "^0.7.2",
-    "purescript-affjax": "^0.13.2",
-    "purescript-datetime": "^0.9.2"
+    "purescript-pux": "^5.0.1",
+    "purescript-pux-devtool": "^3.0.0",
+    "purescript-argonaut": "^1.0.0",
+    "purescript-affjax": "^2.0.1"
   }
 }

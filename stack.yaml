@@ -1,13 +1,5 @@
-resolver: lts-6.1
-# packages:
-#   - /home/slee2/projects/hylogen
+resolver: lts-6.9
 extra-deps:
-  - hylogen-0.1.3.0
-
-
+  - hylogen-0.1.4.1
+  - hylide-0.1.4.0
 flags: {}
-
-extra-package-dbs: []
-nix:
-  shell-file: "default.nix"
-  pure: false

@@ -25,9 +25,8 @@ var config = {
         exclude: /node_modules/,
         query: {
           psc: 'psa',
-          pscArgs: {
-            sourceMaps: true
-          }
+          pscIde: true,
+          pscArgs: "--source-maps --censor-lib --censor-codes=ImplicitImport"
         }
       }
     ],

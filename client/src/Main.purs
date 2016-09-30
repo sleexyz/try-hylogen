@@ -1,38 +1,42 @@
 module Main where
 
+import Prelude
+import App.Layout as A
+import App.Routes (match)
 import Control.Bind ((=<<))
 import Control.Monad.Eff (Eff)
 import DOM (DOM)
-import Prelude (bind, return)
-import Control.Monad.Eff.Console (log, CONSOLE)
-import Pux (App, Config, CoreEffects, fromSimple, renderToDOM)
 import Network.HTTP.Affjax (AJAX)
-import App.App
+import Pux (App, Config, CoreEffects, fromSimple, renderToDOM, start)
+import Pux.Devtool (Action, start) as Pux.Devtool
+import Pux.Router (sampleUrl)
+import Signal ((~>))
+import TryHylogen
 
-type AppEffects = (ajax :: AJAX)
+
 
 -- | App configuration
-config :: State -> Eff (CoreEffects AppEffects) (Config State Action AppEffects)
-config state = return  { initialState: state
-                       , update: update
-                       , view: view
-                       , inputs: []
-                       }
+config :: forall eff. A.State -> Eff (AppEffectsWith eff) (Config A.State A.Action AppEffects)
+config state = do
+  urlSignal <- sampleUrl
+  let routeSignal = urlSignal ~> \r -> A.PageView (match r)
+  pure
+    { initialState: state
+    , update: A.update
+    , view: A.view
+    , inputs: [routeSignal]
+    }
 
-main :: State -> Eff (CoreEffects AppEffects) (App State Action)
+-- | Entry point for the browser.
+main :: A.State -> Eff (CoreEffects AppEffects) (App A.State A.Action)
 main state = do
-  app <- Pux.start =<< config state
-  renderToDOM "#app" app.html :: _
-  return app
-
--- debug :: State -> Eff (CoreEffects AppEffects) (App State (Pux.Devtool.Action Action))
--- debug state = do
---   app <- Pux.Devtool.start =<< config state
---   renderToDOM "#app" app.html
---   return app
-
-debug :: State -> Eff (CoreEffects AppEffects) (App State Action)
-debug state = do
-  app <- Pux.start =<< config state
+  app <- start =<< config state
   renderToDOM "#app" app.html
-  return app
+  pure app
+
+-- | Entry point for the browser with pux-devtool injected.
+debug :: A.State -> Eff (CoreEffects AppEffects) (App A.State (Pux.Devtool.Action A.Action))
+debug state = do
+  app <- Pux.Devtool.start =<< config state
+  renderToDOM "#app" app.html
+  pure app
