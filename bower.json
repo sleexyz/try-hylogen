@@ -6,5 +6,9 @@
     "purescript-pux-devtool": "^3.0.0",
     "purescript-argonaut": "^1.0.0",
     "purescript-affjax": "^2.0.1"
+  },
+  "resolutions": {
+    "purescript-dom": "~1.1.0",
+    "purescript-js-date": "^1.0.0"
   }
 }
